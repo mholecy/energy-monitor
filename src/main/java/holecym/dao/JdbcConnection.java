@@ -1,19 +1,19 @@
 package holecym.dao;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 /**
  * Created by Michal on 17. 1. 2017.
  */
 public class JdbcConnection {
     Connection connection;
-    PreparedStatement preparedStatement;
-    ResultSet resultSet;
 
     JdbcConnection() {
         String dbConnectString = System.getProperty("db.connection");
-        String dbUser =System.getProperty("db.username");
-        String dbPassword =System.getProperty("db.password");
+        String dbUser = System.getProperty("db.username");
+        String dbPassword = System.getProperty("db.password");
         connection = getConnection(dbConnectString, dbUser, dbPassword);
     }
 
@@ -30,14 +30,8 @@ public class JdbcConnection {
         return connection;
     }
 
-    public void closeConnections() {
+    void closeConnections() {
         try {
-            if (resultSet != null) {
-                resultSet.close();
-            }
-            if (preparedStatement != null) {
-                preparedStatement.close();
-            }
             if (connection != null) {
                 connection.close();
             }

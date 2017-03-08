@@ -1,14 +1,9 @@
 package holecym;
 
-import holecym.api.MeasuresDao;
-import holecym.api.MonitorDao;
-import holecym.dao.MeasuresDaoImpl;
-import holecym.dao.MonitorDaoImpl;
-import holecym.model.Measures;
-import holecym.model.Monitor;
+import holecym.gui.GuiForm;
 
+import javax.swing.*;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -21,19 +16,13 @@ public class Main {
         properties.setProperty("db.username", "mholecy");
         properties.setProperty("db.password", "kleopatra");
 
-        MonitorDao monitorDao = new MonitorDaoImpl();
-        List<Monitor> monitorData = monitorDao.getMonitorValues();
-        for (Monitor monitor : monitorData) {
-            System.out.println(monitor);
-        }
-        monitorDao.closeConnections();
-
-        MeasuresDao measuresDao = new MeasuresDaoImpl();
-        List<Measures> measureValues = measuresDao.getMeasureValues();
-        for (Measures measures : measureValues) {
-            System.out.println(measures);
-        }
-        measuresDao.closeConnections();
-
+        SwingUtilities.invokeLater(() -> {
+            final GuiForm guiForm = new GuiForm();
+            guiForm.setVisible(true);
+            guiForm.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+            guiForm.pack();
+            guiForm.setLocationRelativeTo(null);
+            guiForm.setVisible(true);
+        });
     }
 }
