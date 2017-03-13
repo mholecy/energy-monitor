@@ -17,8 +17,12 @@ public final class DateUtils {
     private DateUtils() {
     }
 
-    public static String formatDateTime(Date date) {
+    public static String formatDate(Date date) {
         final LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+        return localDateTime.format(formatter);
+    }
+
+    public static String formatDateTime(LocalDateTime localDateTime) {
         return localDateTime.format(formatter);
     }
 

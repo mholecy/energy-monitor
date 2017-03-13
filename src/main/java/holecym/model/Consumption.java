@@ -8,14 +8,14 @@ import java.util.Set;
  */
 public class Consumption {
 
-    private Map<String, Set<ConsumptionModel>> data;
+    private Map<Appliance, Set<ConsumptionModel>> data;
     private Map<String, Double> totalUsage;
 
-    public Map<String, Set<ConsumptionModel>> getData() {
+    public Map<Appliance, Set<ConsumptionModel>> getData() {
         return data;
     }
 
-    public void setData(Map<String, Set<ConsumptionModel>> data) {
+    public void setData(Map<Appliance, Set<ConsumptionModel>> data) {
         this.data = data;
     }
 

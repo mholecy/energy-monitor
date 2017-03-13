@@ -1,5 +1,6 @@
 package holecym.dao;
 
+import holecym.model.Appliance;
 import holecym.model.ConsumptionModel;
 
 import java.sql.ResultSet;
@@ -25,9 +26,8 @@ public class ConsumptionDao extends JdbcConnection {
         super();
     }
 
-    public Map<String, Set<ConsumptionModel>> getMeasureValues(List<String> sqlQueries, String[] appliances) {
-        final Map<String, Set<ConsumptionModel>> result = new HashMap<>();
-
+    public Map<Appliance, Set<ConsumptionModel>> getMeasureValues(List<String> sqlQueries, Appliance[] appliances) {
+        final Map<Appliance, Set<ConsumptionModel>> result = new HashMap<>();
 
         try (Statement statement = connection.createStatement()) {
             for (int i = 0, sqlQueriesSize = sqlQueries.size(); i < sqlQueriesSize; i++) {

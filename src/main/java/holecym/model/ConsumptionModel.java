@@ -90,7 +90,7 @@ public class ConsumptionModel {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", unit='" + unit + '\'' +
-                ", datetime=" + DateUtils.formatDateTime(datetime) +
+                ", datetime=" + DateUtils.formatDate(datetime) +
                 ", usage=" + usage +
                 '}';
     }

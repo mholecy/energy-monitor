@@ -1,9 +1,10 @@
 package holecym.api;
 
+import holecym.model.Appliance;
 import holecym.model.Consumption;
 import holecym.model.Production;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * Created by Michal on 5. 3. 2017.
@@ -19,7 +20,7 @@ public interface EnergyMonitorApi {
      * @param appliance Spotrebic, alebo viacero spotrebicov pre ktore sa bude ratat spotreba
      * @return
      */
-    Consumption getConsumptionData(Date dateFrom, Date dateTo, String... appliance);
+    Consumption getConsumptionData(LocalDateTime dateFrom, LocalDateTime dateTo, Appliance... appliance);
 
     /**
      * Funkcia na vyrátanie množstva vyrobených jednotiek jednej alebo viacerých výrobných liniek v rámci
@@ -30,5 +31,5 @@ public interface EnergyMonitorApi {
      * @param assembleLine Vyrobna linka, alebo viacero liniek pre ktore sa bude ratat pocet
      * @return
      */
-    Production getProducedItemsCountData(Date dateFrom, Date dateTo, String... assembleLine);
+    Production getProducedItemsCountData(LocalDateTime dateFrom, LocalDateTime dateTo, String... assembleLine);
 }
