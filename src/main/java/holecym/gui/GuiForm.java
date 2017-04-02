@@ -8,11 +8,13 @@ package holecym.gui;
 import com.github.lgooddatepicker.components.DateTimePicker;
 import holecym.api.AppliancesApi;
 import holecym.api.EnergyMonitorApi;
-import holecym.api.impl.AppliancesApiImpl;
+import holecym.api.impl.ConsuptionApplianceApiImpl;
 import holecym.api.impl.EnergyMonitorApiImpl;
 import holecym.model.Appliance;
 import holecym.model.Consumption;
 import holecym.model.ConsumptionModel;
+import holecym.model.Production;
+import holecym.model.ProductionModel;
 import java.awt.FlowLayout;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -54,8 +56,10 @@ public class GuiForm extends javax.swing.JFrame {
     }
 
     private void fetchAppliances() {
-        AppliancesApi appliances = new AppliancesApiImpl();
-        spotrebice = appliances.getAppliances();
+        AppliancesApi appliances = new ConsuptionApplianceApiImpl();
+        if (spotrebice == null) {
+            spotrebice = appliances.getAppliances();
+        }
     }
 
     private ChartPanel getChartPanel(JFreeChart lineChart) {
@@ -64,7 +68,7 @@ public class GuiForm extends javax.swing.JFrame {
         return chartPanel;
     }
 
-    private XYDataset createDataset() {
+    private XYDataset createConsumptionDataset() {
         TimeSeriesCollection dataset = new TimeSeriesCollection();
         EnergyMonitorApi operations = new EnergyMonitorApiImpl();
 
@@ -93,6 +97,35 @@ public class GuiForm extends javax.swing.JFrame {
         return dataset;
     }
 
+    private XYDataset createProductionDataset() {
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
+        EnergyMonitorApi operations = new EnergyMonitorApiImpl();
+
+        LocalDateTime dateTimeFromVar = dateTimeFrom.getDateTimeStrict();
+        LocalDateTime dateTimeToVar = dateTimeTo.getDateTimeStrict();
+
+        final int[] selectedIndices = jListSpotrebice.getSelectedIndices();
+        Appliance[] appliances = new Appliance[selectedIndices.length];
+
+        for (int i = 0; i < selectedIndices.length; i++) {
+            appliances[i] = spotrebice.get(selectedIndices[i]);
+        }
+
+        Production production = operations.getProducedItemsCountData(
+                dateTimeFromVar,
+                dateTimeToVar,
+                appliances);
+
+        final Map<Appliance, Set<ProductionModel>> productionData = production.getData();
+        productionData.forEach((Appliance key, Set<ProductionModel> productionModels) -> {
+            TimeSeries timeSeries = new TimeSeries(key.toString());
+            productionModels.forEach((ProductionModel model) -> timeSeries.add(new Millisecond(model.getDate()),
+                    model.getUnitsAssembled()));
+            dataset.addSeries(timeSeries);
+        });
+        return dataset;
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -107,8 +140,10 @@ public class GuiForm extends javax.swing.JFrame {
         jListSpotrebice = new javax.swing.JList();
         tabbedPane = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
-        jTabbedPane3 = new javax.swing.JTabbedPane();
-        jTabbedPane4 = new javax.swing.JTabbedPane();
+        jPanel2 = new javax.swing.JPanel();
+        jPanel3 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
         jPanelDateFromTimePicker = new javax.swing.JPanel();
         jPanelDateToTimePicker = new javax.swing.JPanel();
         jLabelSpotrebic = new javax.swing.JLabel();
@@ -128,14 +163,21 @@ public class GuiForm extends javax.swing.JFrame {
         });
 
         jListSpotrebice.setModel(new javax.swing.AbstractListModel() {
+
+            @Override
             public int getSize() {
                 if (spotrebice == null){
                     fetchAppliances();
                 }
                 return spotrebice.size();
             }
-            public Object getElementAt(int i) { return spotrebice.get(i); }
+
+            @Override
+            public Object getElementAt(int i) {
+                return spotrebice.get(i);
+            }
         });
+        jListSpotrebice.setMinimumSize(new java.awt.Dimension(200, 0));
         jListSpotrebice.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
                 jListSpotrebiceValueChanged(evt);
@@ -161,14 +203,57 @@ public class GuiForm extends javax.swing.JFrame {
         );
 
         tabbedPane.addTab("Spotreba", jPanel1);
-        tabbedPane.addTab("V˝roba", jTabbedPane3);
-        tabbedPane.addTab("ätatistika", jTabbedPane4);
+
+        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 720, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 482, Short.MAX_VALUE)
+        );
+
+        tabbedPane.addTab("V√Ωroba", jPanel2);
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane3.setViewportView(jTable1);
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 472, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 248, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 55, Short.MAX_VALUE))
+        );
+
+        tabbedPane.addTab("≈†tatistika", jPanel3);
 
         jPanelDateFromTimePicker.setLayout(new java.awt.BorderLayout());
 
         jPanelDateToTimePicker.setLayout(new java.awt.BorderLayout());
 
-        jLabelSpotrebic.setText("SpotrebiË(e):");
+        jLabelSpotrebic.setText("Spotrebiƒç(e):");
 
         jLabelObdobieOd.setText("Obdobie od:");
 
@@ -178,7 +263,7 @@ public class GuiForm extends javax.swing.JFrame {
         jTextPanelDetail.setContentType(" text/html"); // NOI18N
         jScrollPane2.setViewportView(jTextPanelDetail);
 
-        jLabelDetail.setText("Detail spotrebiËa:");
+        jLabelDetail.setText("Detail spotrebiƒça:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -187,14 +272,13 @@ public class GuiForm extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(jLabelSpotrebic, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jScrollPane1)
-                        .addComponent(jScrollPane2))
+                    .addComponent(jLabelSpotrebic, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabelDetail))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(tabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 725, Short.MAX_VALUE)
+                    .addComponent(tabbedPane)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(jLabelObdobieOd, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
@@ -223,7 +307,7 @@ public class GuiForm extends javax.swing.JFrame {
                             .addComponent(jPanelDateFromTimePicker, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jButtonSpocitaj, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(tabbedPane))
+                        .addComponent(tabbedPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 399, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
@@ -237,11 +321,23 @@ public class GuiForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonSpocitajActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSpocitajActionPerformed
+        switch (tabbedPane.getSelectedIndex()) {
+            case 0:
+                createConsumptionGraph();
+                break;
+            case 1:
+                createProductionGraph();
+                break;
+        }
+    }//GEN-LAST:event_jButtonSpocitajActionPerformed
+
+    private void createConsumptionGraph() {
         JFreeChart lineChart = ChartFactory.createTimeSeriesChart(
-                "Graf",
-                "»as",
+                "Graf spotreby",
+                "ƒåas",
                 "Spotreba",
-                createDataset());
+                createConsumptionDataset()
+        );
 
         ChartPanel chartPanel = getChartPanel(lineChart);
         jPanel1.removeAll();
@@ -249,7 +345,23 @@ public class GuiForm extends javax.swing.JFrame {
         jPanel1.add(chartPanel);
         jPanel1.repaint();
         jPanel1.validate();
-    }//GEN-LAST:event_jButtonSpocitajActionPerformed
+    }
+
+    private void createProductionGraph() {
+        JFreeChart lineChart = ChartFactory.createTimeSeriesChart(
+                "Graf v√Ωroby",
+                "ƒåas",
+                "Poƒçet kusov",
+                createProductionDataset()
+        );
+
+        ChartPanel chartPanel = getChartPanel(lineChart);
+        jPanel2.removeAll();
+        jPanel2.setLayout(new FlowLayout(FlowLayout.CENTER));
+        jPanel2.add(chartPanel);
+        jPanel2.repaint();
+        jPanel2.validate();
+    }
 
     private void jListSpotrebiceValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_jListSpotrebiceValueChanged
         final int selectedIndice = jListSpotrebice.getAnchorSelectionIndex();
@@ -268,12 +380,14 @@ public class GuiForm extends javax.swing.JFrame {
     private javax.swing.JLabel jLabelSpotrebic;
     private javax.swing.JList jListSpotrebice;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanelDateFromTimePicker;
     private javax.swing.JPanel jPanelDateToTimePicker;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTabbedPane jTabbedPane3;
-    private javax.swing.JTabbedPane jTabbedPane4;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTable jTable1;
     private javax.swing.JTextPane jTextPanelDetail;
     private javax.swing.JTabbedPane tabbedPane;
     // End of variables declaration//GEN-END:variables

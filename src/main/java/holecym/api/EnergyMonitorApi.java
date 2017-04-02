@@ -28,8 +28,8 @@ public interface EnergyMonitorApi {
      *
      * @param dateFrom     Odkedy sa bude ratat pocet
      * @param dateTo       Dokedy sa bude ratat pocet
-     * @param assembleLine Vyrobna linka, alebo viacero liniek pre ktore sa bude ratat pocet
+     * @param appliance Vyrobna linka, alebo viacero liniek pre ktore sa bude ratat pocet
      * @return
      */
-    Production getProducedItemsCountData(LocalDateTime dateFrom, LocalDateTime dateTo, String... assembleLine);
+    Production getProducedItemsCountData(LocalDateTime dateFrom, LocalDateTime dateTo, Appliance... appliance);
 }

@@ -1,15 +1,23 @@
 package holecym.api.impl;
 
 import holecym.api.EnergyMonitorApi;
-import holecym.dao.ConsumptionDao;
+import holecym.dao.DataAccessObject;
+import holecym.dao.converters.ConsumptionModelConverter;
+import holecym.dao.converters.DtoConverter;
+import holecym.dao.converters.ProductionModelConverter;
 import holecym.model.Appliance;
 import holecym.model.Consumption;
 import holecym.model.ConsumptionModel;
 import holecym.model.Production;
+import holecym.model.ProductionModel;
 import holecym.utils.DateUtils;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Michal on 5. 3. 2017.
@@ -27,14 +35,27 @@ public class EnergyMonitorApiImpl implements EnergyMonitorApi {
                     "LEFT OUTER JOIN [TEST].[dbo].[tbl_merice] [MER]\n" +
                     "ON [MON].[parentid] = [MER].[Parent_ID]\n";
 
-    private ConsumptionDao consumptionDao;
+    private static final String SQL_PRODUCTION_QUERY_TEMPLATE =
+            "SELECT [Segment]\n" +
+                    ",[Dátum]\n" +
+                    ",[Linka]\n" +
+                    ",[Stroj]\n" +
+                    ",[pocet_kusov]\n" +
+                    ",[vyr_linka]\n" +
+                    ",[Dátum1]\n" +
+                    "FROM [TEST].[dbo].[Data$]\n";
+
+    private DataAccessObject<ConsumptionModel> consumptionDao;
+    private DataAccessObject<ProductionModel> productionDao;
 
     public EnergyMonitorApiImpl() {
-        consumptionDao = new ConsumptionDao();
+        consumptionDao = new DataAccessObject<>();
+        productionDao = new DataAccessObject<>();
     }
 
     @Override
-    public Consumption getConsumptionData(LocalDateTime dateFrom, LocalDateTime dateTo, Appliance... appliances) {
+    public Consumption getConsumptionData(LocalDateTime dateFrom, LocalDateTime dateTo,
+                                          Appliance... appliances) {
         final Consumption consumption = new Consumption();
         final List<String> queries = new ArrayList<>();
 
@@ -43,19 +64,46 @@ public class EnergyMonitorApiImpl implements EnergyMonitorApi {
             queries.add(sqlQuery);
         }
 
-        final Map<Appliance, Set<ConsumptionModel>> measureValues = consumptionDao.getMeasureValues(queries, appliances);
+        DtoConverter<ConsumptionModel> dtoConverter = new ConsumptionModelConverter();
+        final Map<Appliance, Set<ConsumptionModel>> measureValues = consumptionDao.getQuery
+                (queries, appliances, dtoConverter);
         consumption.setData(measureValues);
         consumption.setTotalUsage(getTotalConsumption(measureValues, appliances));
         return consumption;
     }
 
     @Override
-    public Production getProducedItemsCountData(LocalDateTime dateFrom, LocalDateTime dateTo, String... assembleLine) {
-        return null;
+    public Production getProducedItemsCountData(LocalDateTime dateFrom, LocalDateTime dateTo,
+                                                Appliance... appliances) {
+        final Production production = new Production();
+        final List<String> queries = new ArrayList<>();
+
+        for (Appliance appliance : appliances) {
+            final String sqlQuery = getSqlQueryForProductionPerAppliance(dateFrom, dateTo, appliance);
+            queries.add(sqlQuery);
+        }
+
+        DtoConverter<ProductionModel> dtoConverter = new ProductionModelConverter();
+        final Map<Appliance, Set<ProductionModel>> measureValues = productionDao.getQuery
+                (queries, appliances, dtoConverter);
+        production.setData(measureValues);
+        return production;
     }
 
-    private String getSqlQueryForComsumptionPerAppliance(LocalDateTime dateFrom, LocalDateTime dateTo, Appliance appliance) {
-        StringBuilder stringBuilder = new StringBuilder(SQL_CONSUMPTION_QUERY_TEMPLATE);
+    private String getSqlQueryForProductionPerAppliance (LocalDateTime dateFrom, LocalDateTime dateTo,
+                                                         Appliance appliance) {
+        final StringBuilder stringBuilder = new StringBuilder(SQL_PRODUCTION_QUERY_TEMPLATE);
+        stringBuilder.append(" WHERE [Dátum1] BETWEEN '")
+                .append(DateUtils.formatDateTime(dateFrom)).append("' ")
+                .append("AND '")
+                .append(DateUtils.formatDateTime(dateTo)).append("'\n")
+                .append("AND ").append("[vyr_linka] = '").append(appliance.getName()).append("'");
+        return stringBuilder.toString();
+    }
+
+    private String getSqlQueryForComsumptionPerAppliance(LocalDateTime dateFrom, LocalDateTime dateTo,
+                                                         Appliance appliance) {
+        final StringBuilder stringBuilder = new StringBuilder(SQL_CONSUMPTION_QUERY_TEMPLATE);
         stringBuilder.append("WHERE [MON].[Datetimestamp]  BETWEEN '")
                 .append(DateUtils.formatDateTime(dateFrom)).append("' ")
                 .append("AND '")
