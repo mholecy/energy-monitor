@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by Michal on 5. 3. 2017.
@@ -65,10 +65,10 @@ public class EnergyMonitorApiImpl implements EnergyMonitorApi {
         }
 
         DtoConverter<ConsumptionModel> dtoConverter = new ConsumptionModelConverter();
-        final Map<Appliance, Set<ConsumptionModel>> measureValues = consumptionDao.getQuery
+        final Map<Appliance, TreeSet<ConsumptionModel>> measureValues = consumptionDao.getQuery
                 (queries, appliances, dtoConverter);
         consumption.setData(measureValues);
-        consumption.setTotalUsage(getTotalConsumption(measureValues, appliances));
+        consumption.setTotalUsage(getTotalConsumption(measureValues));
         return consumption;
     }
 
@@ -84,14 +84,15 @@ public class EnergyMonitorApiImpl implements EnergyMonitorApi {
         }
 
         DtoConverter<ProductionModel> dtoConverter = new ProductionModelConverter();
-        final Map<Appliance, Set<ProductionModel>> measureValues = productionDao.getQuery
+        final Map<Appliance, TreeSet<ProductionModel>> measureValues = productionDao.getQuery
                 (queries, appliances, dtoConverter);
         production.setData(measureValues);
+        production.setTotalProducedItems(getTotalProducedItems(measureValues));
         return production;
     }
 
-    private String getSqlQueryForProductionPerAppliance (LocalDateTime dateFrom, LocalDateTime dateTo,
-                                                         Appliance appliance) {
+    private String getSqlQueryForProductionPerAppliance(LocalDateTime dateFrom, LocalDateTime dateTo,
+                                                        Appliance appliance) {
         final StringBuilder stringBuilder = new StringBuilder(SQL_PRODUCTION_QUERY_TEMPLATE);
         stringBuilder.append(" WHERE [Dátum1] BETWEEN '")
                 .append(DateUtils.formatDateTime(dateFrom)).append("' ")
@@ -115,12 +116,30 @@ public class EnergyMonitorApiImpl implements EnergyMonitorApi {
         return stringBuilder.toString();
     }
 
-    private Map<String, Double> getTotalConsumption(Map<Appliance, Set<ConsumptionModel>> measuresData, Appliance[] appliances) {
+    private Map<String, Double> getTotalConsumption(Map<Appliance, TreeSet<ConsumptionModel>> measuresData) {
         final Map<String, Double> result = new HashMap<>();
-        double initialValue;
-        for (Appliance appliance : appliances) {
 
-        }
-        return null;
+        measuresData.forEach((Appliance key, TreeSet<ConsumptionModel> consumptionModels) -> {
+            if (consumptionModels != null && !consumptionModels.isEmpty()) {
+                final ConsumptionModel first = consumptionModels.first();
+                final ConsumptionModel last = consumptionModels.last();
+                final double totalConsumption = last.getUsage() - first.getUsage();
+                result.put(key.toString(), totalConsumption);
+            }
+        });
+        return result;
+    }
+
+    private Map<String, Integer> getTotalProducedItems(
+            Map<Appliance, TreeSet<ProductionModel>> measuresData) {
+
+        final Map<String, Integer> result = new HashMap<>();
+        measuresData.forEach((Appliance key, TreeSet<ProductionModel> productionModels) -> {
+            if (productionModels != null && !productionModels.isEmpty()) {
+                final int sum = productionModels.stream().mapToInt(ProductionModel::getUnitsAssembled).sum();
+                result.put(key.toString(), sum);
+            }
+        });
+        return result;
     }
 }

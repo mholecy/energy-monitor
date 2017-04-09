@@ -23,7 +23,7 @@ public class ProductionModelConverter implements DtoConverter<ProductionModel> {
         ProductionModel productionModel = new ProductionModel();
 
         productionModel.setLine(resultSet.getString(COLUMN_LINE));
-        productionModel.setUnitsAssembled(resultSet.getLong(COLUMN_POCET_JEDNOTIEK));
+        productionModel.setUnitsAssembled(resultSet.getInt(COLUMN_POCET_JEDNOTIEK));
         productionModel.setAppliance(resultSet.getString(COLUMN_VYROBNA_LINKA));
         productionModel.setDate(getDateFromTimestamp(resultSet.getTimestamp(COLUMN_DATE)));
 

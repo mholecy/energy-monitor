@@ -1,21 +1,21 @@
 package holecym.model;
 
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by Michal on 6. 3. 2017.
  */
 public class Consumption {
 
-    private Map<Appliance, Set<ConsumptionModel>> data;
+    private Map<Appliance, TreeSet<ConsumptionModel>> data;
     private Map<String, Double> totalUsage;
 
-    public Map<Appliance, Set<ConsumptionModel>> getData() {
+    public Map<Appliance, TreeSet<ConsumptionModel>> getData() {
         return data;
     }
 
-    public void setData(Map<Appliance, Set<ConsumptionModel>> data) {
+    public void setData(Map<Appliance, TreeSet<ConsumptionModel>> data) {
         this.data = data;
     }
 

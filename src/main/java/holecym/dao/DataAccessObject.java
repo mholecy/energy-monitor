@@ -7,10 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by Michal on 5. 1. 2017.
@@ -21,13 +20,13 @@ public class DataAccessObject<T> extends SimpleDao<T> {
         super();
     }
 
-    public Map<Appliance, Set<T>> getQuery
+    public Map<Appliance, TreeSet<T>> getQuery
             (List<String> sqlQueries, Appliance[] appliances, DtoConverter<T> dtoConverter) {
-        final Map<Appliance, Set<T>> result = new HashMap<>();
+        final Map<Appliance, TreeSet<T>> result = new HashMap<>();
 
         try (Statement statement = connection.createStatement()) {
             for (int i = 0, sqlQueriesSize = sqlQueries.size(); i < sqlQueriesSize; i++) {
-                final Set<T> dtoModelSet = new HashSet<>();
+                final TreeSet<T> dtoModelSet = new TreeSet<>();
                 String sqlQuery = sqlQueries.get(i);
                 try (ResultSet resultSet = statement.executeQuery(sqlQuery)) {
                     while (resultSet.next()) {

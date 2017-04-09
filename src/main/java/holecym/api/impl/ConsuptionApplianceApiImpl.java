@@ -3,7 +3,7 @@ package holecym.api.impl;
 import holecym.api.AppliancesApi;
 import holecym.dao.DataAccessObject;
 import holecym.dao.SimpleDao;
-import holecym.dao.converters.ConsumptionApplianceConverter;
+import holecym.dao.converters.ApplianceConverter;
 import holecym.dao.converters.DtoConverter;
 import holecym.model.Appliance;
 
@@ -27,7 +27,7 @@ public class ConsuptionApplianceApiImpl implements AppliancesApi {
 
     @Override
     public List<Appliance> getAppliances() {
-        DtoConverter<Appliance> dtoConverter = new ConsumptionApplianceConverter();
+        DtoConverter<Appliance> dtoConverter = new ApplianceConverter();
         final Set<Appliance> appliances = dataAccessObject
                 .getSimpleQuery(SQL_QUERY_FOR_APPLIANCES, dtoConverter);
         return new ArrayList<>(appliances);

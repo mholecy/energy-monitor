@@ -7,10 +7,10 @@ import java.util.Date;
 /**
  * Created by Michal on 6. 3. 2017.
  */
-public class ProductionModel {
+public class ProductionModel implements Comparable<ProductionModel> {
 
     private String line;
-    private Long unitsAssembled;
+    private Integer unitsAssembled;
     private String appliance;
     private Date date;
 
@@ -22,11 +22,11 @@ public class ProductionModel {
         this.line = line;
     }
 
-    public Long getUnitsAssembled() {
+    public Integer getUnitsAssembled() {
         return unitsAssembled;
     }
 
-    public void setUnitsAssembled(Long unitsAssembled) {
+    public void setUnitsAssembled(Integer unitsAssembled) {
         this.unitsAssembled = unitsAssembled;
     }
 
@@ -78,5 +78,13 @@ public class ProductionModel {
                 ", appliance='" + appliance + '\'' +
                 ", date=" + DateUtils.formatDate(date) +
                 '}';
+    }
+
+    @Override
+    public int compareTo(ProductionModel o) {
+        if (this.getDate().after(o.getDate())) return 1;
+        if (this.getDate().before(o.getDate())) return -1;
+        if (this.getDate().equals(o.getDate())) return 0;
+        return 0;
     }
 }

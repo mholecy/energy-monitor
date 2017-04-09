@@ -26,8 +26,8 @@ public interface EnergyMonitorApi {
      * Funkcia na vyrátanie množstva vyrobených jednotiek jednej alebo viacerých výrobných liniek v rámci
      * vybraného obdobia (s presnosťou na hodiny).
      *
-     * @param dateFrom     Odkedy sa bude ratat pocet
-     * @param dateTo       Dokedy sa bude ratat pocet
+     * @param dateFrom  Odkedy sa bude ratat pocet
+     * @param dateTo    Dokedy sa bude ratat pocet
      * @param appliance Vyrobna linka, alebo viacero liniek pre ktore sa bude ratat pocet
      * @return
      */

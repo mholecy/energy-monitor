@@ -7,7 +7,7 @@ import java.util.Date;
 /**
  * Created by Michal on 17. 1. 2017.
  */
-public class ConsumptionModel {
+public class ConsumptionModel implements Comparable<ConsumptionModel> {
 
     private int id;
     private String name;
@@ -93,5 +93,14 @@ public class ConsumptionModel {
                 ", datetime=" + DateUtils.formatDate(datetime) +
                 ", usage=" + usage +
                 '}';
+    }
+
+
+    @Override
+    public int compareTo(ConsumptionModel o) {
+        if (this.getDatetime().after(o.getDatetime())) return 1;
+        if (this.getDatetime().before(o.getDatetime())) return -1;
+        if (this.getDatetime().equals(o.getDatetime())) return 0;
+        return 0;
     }
 }

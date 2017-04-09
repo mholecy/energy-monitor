@@ -16,7 +16,7 @@ import static holecym.dao.converters.columns.ColumnName.COLUMN_UNIT;
 /**
  * Created by Michal on 26. 3. 2017.
  */
-public class ConsumptionApplianceConverter implements DtoConverter<Appliance> {
+public class ApplianceConverter implements DtoConverter<Appliance> {
 
     @Override
     public void convert(Set<Appliance> dtoModelSet, ResultSet resultSet) throws SQLException {

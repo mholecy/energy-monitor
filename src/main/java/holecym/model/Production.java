@@ -1,29 +1,29 @@
 package holecym.model;
 
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by Michal on 6. 3. 2017.
  */
 public class Production {
-    private Map<Appliance, Set<ProductionModel>> data;
-    private Map<String, Double> totalUsage;
+    private Map<Appliance, TreeSet<ProductionModel>> data;
+    private Map<String, Integer> totalProducedItems;
 
-    public Map<Appliance, Set<ProductionModel>> getData() {
+    public Map<Appliance, TreeSet<ProductionModel>> getData() {
         return data;
     }
 
-    public void setData(Map<Appliance, Set<ProductionModel>> data) {
+    public void setData(Map<Appliance, TreeSet<ProductionModel>> data) {
         this.data = data;
     }
 
-    public Map<String, Double> getTotalUsage() {
-        return totalUsage;
+    public Map<String, Integer> getTotalProducedItems() {
+        return totalProducedItems;
     }
 
-    public void setTotalUsage(Map<String, Double> totalUsage) {
-        this.totalUsage = totalUsage;
+    public void setTotalProducedItems(Map<String, Integer> totalUsage) {
+        this.totalProducedItems = totalUsage;
     }
 
     @Override
@@ -34,13 +34,13 @@ public class Production {
         Production that = (Production) o;
 
         if (getData() != null ? !getData().equals(that.getData()) : that.getData() != null) return false;
-        return getTotalUsage() != null ? getTotalUsage().equals(that.getTotalUsage()) : that.getTotalUsage() == null;
+        return getTotalProducedItems() != null ? getTotalProducedItems().equals(that.getTotalProducedItems()) : that.getTotalProducedItems() == null;
     }
 
     @Override
     public int hashCode() {
         int result = getData() != null ? getData().hashCode() : 0;
-        result = 31 * result + (getTotalUsage() != null ? getTotalUsage().hashCode() : 0);
+        result = 31 * result + (getTotalProducedItems() != null ? getTotalProducedItems().hashCode() : 0);
         return result;
     }
 
@@ -48,7 +48,7 @@ public class Production {
     public String toString() {
         return "Production{" +
                 "data=" + data +
-                ", totalUsage=" + totalUsage +
+                ", totalProducedItems=" + totalProducedItems +
                 '}';
     }
 }

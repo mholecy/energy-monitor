@@ -19,7 +19,9 @@ import java.awt.FlowLayout;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeSet;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -34,9 +36,12 @@ import org.jfree.data.xy.XYDataset;
  */
 public class GuiForm extends javax.swing.JFrame {
 
+    private static final String[] STATS_COLUMNS = new String[]{"Spotrebič", " Celková spotreba", "Vyrobených kusov"};
     private final DateTimePicker dateTimeTo;
     private final DateTimePicker dateTimeFrom;
     private List<Appliance> spotrebice;
+    private Production production;
+    private Consumption consumption;
 
     /**
      * Creates new form GuiForm
@@ -70,25 +75,13 @@ public class GuiForm extends javax.swing.JFrame {
 
     private XYDataset createConsumptionDataset() {
         TimeSeriesCollection dataset = new TimeSeriesCollection();
-        EnergyMonitorApi operations = new EnergyMonitorApiImpl();
 
-        LocalDateTime dateTimeFromVar = dateTimeFrom.getDateTimeStrict();
-        LocalDateTime dateTimeToVar = dateTimeTo.getDateTimeStrict();
+        Appliance[] appliances = getAppliances();
 
-        final int[] selectedIndices = jListSpotrebice.getSelectedIndices();
-        Appliance[] appliances = new Appliance[selectedIndices.length];
+        consumption = getConsumption(appliances);
 
-        for (int i = 0; i < selectedIndices.length; i++) {
-            appliances[i] = spotrebice.get(selectedIndices[i]);
-        }
-
-        Consumption consumption = operations.getConsumptionData(
-                dateTimeFromVar,
-                dateTimeToVar,
-                appliances);
-
-        final Map<Appliance, Set<ConsumptionModel>> consumptionData = consumption.getData();
-        consumptionData.forEach((Appliance key, Set<ConsumptionModel> consumptionModels) -> {
+        final Map<Appliance, TreeSet<ConsumptionModel>> consumptionData = consumption.getData();
+        consumptionData.forEach((Appliance key, TreeSet<ConsumptionModel> consumptionModels) -> {
             TimeSeries timeSeries = new TimeSeries(key.toString());
             consumptionModels.forEach((ConsumptionModel model) -> timeSeries.add(new Millisecond(model.getDatetime()),
                     model.getUsage()));
@@ -97,33 +90,54 @@ public class GuiForm extends javax.swing.JFrame {
         return dataset;
     }
 
-    private XYDataset createProductionDataset() {
-        TimeSeriesCollection dataset = new TimeSeriesCollection();
-        EnergyMonitorApi operations = new EnergyMonitorApiImpl();
-
-        LocalDateTime dateTimeFromVar = dateTimeFrom.getDateTimeStrict();
-        LocalDateTime dateTimeToVar = dateTimeTo.getDateTimeStrict();
-
+    private Appliance[] getAppliances() {
         final int[] selectedIndices = jListSpotrebice.getSelectedIndices();
         Appliance[] appliances = new Appliance[selectedIndices.length];
 
         for (int i = 0; i < selectedIndices.length; i++) {
             appliances[i] = spotrebice.get(selectedIndices[i]);
         }
+        return appliances;
+    }
 
-        Production production = operations.getProducedItemsCountData(
+    private Consumption getConsumption(Appliance[] appliances) {
+        EnergyMonitorApi operations = new EnergyMonitorApiImpl();
+        LocalDateTime dateTimeFromVar = dateTimeFrom.getDateTimeStrict();
+        LocalDateTime dateTimeToVar = dateTimeTo.getDateTimeStrict();
+        return operations.getConsumptionData(
                 dateTimeFromVar,
                 dateTimeToVar,
                 appliances);
+    }
 
-        final Map<Appliance, Set<ProductionModel>> productionData = production.getData();
-        productionData.forEach((Appliance key, Set<ProductionModel> productionModels) -> {
+    private XYDataset createProductionDataset() {
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
+
+        LocalDateTime dateTimeFromVar = dateTimeFrom.getDateTimeStrict();
+        LocalDateTime dateTimeToVar = dateTimeTo.getDateTimeStrict();
+
+        Appliance[] appliances = getAppliances();
+
+        production = getProduction(appliances);
+
+        final Map<Appliance, TreeSet<ProductionModel>> productionData = production.getData();
+        productionData.forEach((Appliance key, TreeSet<ProductionModel> productionModels) -> {
             TimeSeries timeSeries = new TimeSeries(key.toString());
             productionModels.forEach((ProductionModel model) -> timeSeries.add(new Millisecond(model.getDate()),
                     model.getUnitsAssembled()));
             dataset.addSeries(timeSeries);
         });
         return dataset;
+    }
+
+    private Production getProduction(Appliance[] appliances) {
+        EnergyMonitorApi operations = new EnergyMonitorApiImpl();
+        LocalDateTime dateTimeFromVar = dateTimeFrom.getDateTimeStrict();
+        LocalDateTime dateTimeToVar = dateTimeTo.getDateTimeStrict();
+        return operations.getProducedItemsCountData(
+                dateTimeFromVar,
+                dateTimeToVar,
+                appliances);
     }
 
     /**
@@ -221,16 +235,16 @@ public class GuiForm extends javax.swing.JFrame {
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Spotrebič", "Celková spotreba", "Vyrobených kusov"
             }
         ));
         jScrollPane3.setViewportView(jTable1);
+        if (jTable1.getColumnModel().getColumnCount() > 0) {
+            jTable1.getColumnModel().getColumn(0).setResizable(false);
+        }
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -321,15 +335,55 @@ public class GuiForm extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonSpocitajActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSpocitajActionPerformed
-        switch (tabbedPane.getSelectedIndex()) {
-            case 0:
-                createConsumptionGraph();
-                break;
-            case 1:
-                createProductionGraph();
-                break;
-        }
+        createConsumptionGraph();
+        createProductionGraph();
+        createStatistics();
     }//GEN-LAST:event_jButtonSpocitajActionPerformed
+
+    private void createStatistics() {
+        Appliance[] appliances = getAppliances();
+
+        if (consumption == null) {
+            consumption = getConsumption(appliances);
+        }
+
+        if (production == null) {
+            production = getProduction(appliances);
+        }
+
+        final String[][] table = new String[appliances.length][3];
+
+        for (int i = 0; i < appliances.length; i++) {
+            Appliance appliance = appliances[i];
+
+            table[i][0] = appliance.toString();
+            table[i][1] = getTotalConsumtion(appliance, consumption);
+            table[i][2] = getTotalProduction(appliance, production);
+        }
+
+        TableModel model = new DefaultTableModel(table, STATS_COLUMNS);
+        jTable1.setModel(model);
+    }
+
+    private String getTotalProduction(Appliance appliance, Production production) {
+        Map<String, Integer> totalProducedItems = production.getTotalProducedItems();
+        if (totalProducedItems != null && !totalProducedItems.isEmpty()) {
+            int result = totalProducedItems.get(appliance.toString());
+            return String.valueOf(result);
+        } else {
+            return "Výsledok neexistuje";
+        }
+    }
+
+    private String getTotalConsumtion(Appliance appliance, Consumption consumption) {
+        Map<String, Double> usage = consumption.getTotalUsage();
+        if (usage != null && !usage.isEmpty()) {
+            double result = usage.get(appliance.toString());
+            return String.valueOf(result);
+        } else {
+            return "Výsledok neexistuje";
+        }
+    }
 
     private void createConsumptionGraph() {
         JFreeChart lineChart = ChartFactory.createTimeSeriesChart(
